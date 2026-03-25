@@ -1,0 +1,14 @@
+{
+  "name": "yusheng-dianliang",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @yusheng/web",
+    "build": "npm run build -w @yusheng/web",
+    "lint": "npm run lint -w @yusheng/web",
+    "start:local": "npm install && npm run dev"
+  }
+}

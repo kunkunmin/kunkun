@@ -1,0 +1,16 @@
+{
+  "name": "@yusheng/core",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.8"
+  },
+  "dependencies": {
+    "dayjs": "^1.11.13"
+  }
+}

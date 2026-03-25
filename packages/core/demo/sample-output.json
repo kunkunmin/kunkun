@@ -1,0 +1,17 @@
+{
+  "input": {
+    "birthDate": "1998-01-01",
+    "expectedLifespanYears": 80,
+    "mealsPerDay": 3,
+    "now": "2026-03-25"
+  },
+  "output": {
+    "totalLifeDays": 29220,
+    "elapsedLifeDays": 10311,
+    "remainingLifeDays": 18909,
+    "remainingPercentage": 65,
+    "remainingMeals": 56727,
+    "formattedRemainingLifeDays": "18,909",
+    "formattedRemainingMeals": "56,727"
+  }
+}
