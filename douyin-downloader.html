@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>抖音视频解析下载</title>
+    <style>
+      body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial; background:#0f172a; color:#e2e8f0; margin:0; }
+      .wrap { max-width: 760px; margin: 32px auto; padding: 0 16px; }
+      .card { background:#111827; border:1px solid #334155; border-radius: 16px; padding:20px; }
+      input,button{ width:100%; box-sizing:border-box; border-radius:10px; border:1px solid #475569; padding:12px; font-size:16px; }
+      input{ background:#0b1220; color:#fff; margin:10px 0; }
+      button{ background:#2563eb; color:#fff; border:none; cursor:pointer; }
+      .muted{ color:#94a3b8; font-size:14px; }
+      .hidden{ display:none; }
+      a.btn{ display:inline-block; background:#10b981; color:#fff; text-decoration:none; padding:10px 14px; border-radius:8px; margin-right:8px; margin-top:8px; }
+      img{ max-width:100%; border-radius:10px; margin-top:10px; }
+      code{ word-break:break-all; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="card">
+        <h1>可直接打开的 HTML 网页</h1>
+        <p class="muted">把这个文件部署到任意静态托管（如 GitHub Pages / Vercel Static）即可直接访问。</p>
+        <input id="url" type="url" placeholder="粘贴抖音分享链接，例如 https://v.douyin.com/xxxx/" />
+        <button id="btn">解析并生成下载链接</button>
+        <p id="msg" class="muted"></p>
+
+        <div id="result" class="hidden">
+          <h3 id="title"></h3>
+          <p id="author" class="muted"></p>
+          <img id="cover" alt="cover" />
+          <div>
+            <a id="open" class="btn" target="_blank" rel="noreferrer">打开视频链接</a>
+            <a id="download" class="btn" download>下载视频</a>
+          </div>
+          <p class="muted">可分享的可点击链接：</p>
+          <code id="share"></code>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const btn = document.getElementById('btn');
+      const msg = document.getElementById('msg');
+      const result = document.getElementById('result');
+      btn.onclick = async () => {
+        const url = document.getElementById('url').value.trim();
+        if (!url) { msg.textContent = '请先输入抖音链接'; return; }
+        msg.textContent = '解析中...';
+        result.classList.add('hidden');
+        try {
+          const api = `https://www.tikwm.com/api/?url=${encodeURIComponent(url)}&hd=1`;
+          const res = await fetch(api);
+          const json = await res.json();
+          if (!res.ok || json.code !== 0 || !json.data || !json.data.play) throw new Error(json.msg || '解析失败');
+          const play = json.data.hdplay || json.data.play;
+          document.getElementById('title').textContent = json.data.title || '未获取到标题';
+          document.getElementById('author').textContent = `作者：${(json.data.author && json.data.author.nickname) || '未知'}`;
+          document.getElementById('cover').src = json.data.cover || '';
+          document.getElementById('open').href = play;
+          document.getElementById('download').href = play;
+          const share = `${location.origin}${location.pathname}?video=${encodeURIComponent(play)}`;
+          document.getElementById('share').textContent = share;
+          msg.textContent = '解析成功';
+          result.classList.remove('hidden');
+        } catch (e) {
+          msg.textContent = e.message || '请求失败';
+        }
+      };
+
+      (function openByQuery() {
+        const q = new URLSearchParams(location.search);
+        const video = q.get('video');
+        if (!video) return;
+        document.getElementById('title').textContent = '来自分享链接的视频';
+        document.getElementById('author').textContent = '作者：未知';
+        document.getElementById('open').href = video;
+        document.getElementById('download').href = video;
+        document.getElementById('share').textContent = location.href;
+        msg.textContent = '已从 URL 参数加载可点击下载链接';
+        result.classList.remove('hidden');
+      })();
+    </script>
+  </body>
+</html>
