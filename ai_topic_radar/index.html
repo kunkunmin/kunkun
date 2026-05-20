@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI 选题雷达</title>
+    <link rel="stylesheet" href="web.css" />
+  </head>
+  <body>
+    <main class="radar-shell">
+      <header class="app-bar">
+        <div>
+          <p class="eyebrow">AI TOPIC RADAR</p>
+          <h1>AI 选题雷达</h1>
+        </div>
+        <div class="toolbar" aria-label="操作">
+          <label class="date-control" for="run-date">
+            <span>日期</span>
+            <input id="run-date" type="date" />
+          </label>
+          <button type="button" id="load-sample">示例</button>
+          <button type="button" id="generate" class="primary">生成 10 条</button>
+          <button type="button" id="download" disabled>导出 CSV</button>
+        </div>
+      </header>
+
+      <section class="workspace" aria-label="选题工作台">
+        <section class="input-panel" aria-labelledby="input-title">
+          <div class="section-head">
+            <h2 id="input-title">平台热点 CSV</h2>
+            <span id="input-count">0 条</span>
+          </div>
+          <textarea id="hotspot-input" spellcheck="false"></textarea>
+          <div class="status-row">
+            <span id="status-text">等待输入</span>
+            <span id="reject-count">过滤 0 条</span>
+          </div>
+        </section>
+
+        <section class="score-panel" aria-label="结果概览">
+          <div class="metric">
+            <span>候选</span>
+            <strong id="candidate-count">0</strong>
+          </div>
+          <div class="metric">
+            <span>职场人</span>
+            <strong id="audience-work">0</strong>
+          </div>
+          <div class="metric">
+            <span>副业人群</span>
+            <strong id="audience-side">0</strong>
+          </div>
+          <div class="metric">
+            <span>小老板</span>
+            <strong id="audience-owner">0</strong>
+          </div>
+        </section>
+      </section>
+
+      <section class="output-panel" aria-labelledby="output-title">
+        <div class="section-head">
+          <h2 id="output-title">候选爆款选题</h2>
+          <span id="output-count">0 / 10</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>采用</th>
+                <th>排名</th>
+                <th>关键词</th>
+                <th>爆款选题标题</th>
+                <th>爆款理由</th>
+                <th>目标人群</th>
+                <th>内容角度</th>
+                <th>引流/转化潜力</th>
+                <th>来源平台</th>
+              </tr>
+            </thead>
+            <tbody id="topic-body">
+              <tr class="empty-row">
+                <td colspan="9">暂无结果</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script src="web.js"></script>
+  </body>
+</html>
