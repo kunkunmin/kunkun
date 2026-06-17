@@ -1,327 +1,151 @@
-"use client";
+import type { CSSProperties } from "react";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { motion } from "framer-motion";
-import { toPng } from "html-to-image";
-import {
-  DEFAULT_MEALS_PER_DAY,
-  DEFAULT_EXPECTED_LIFESPAN_YEARS,
-  formatNumber,
-  getLifeSummary,
-  copyByTone,
-  type ToneStyle
-} from "@yusheng/core";
-import { templates, type TemplateKey } from "@yusheng/templates";
-import { themeTokens } from "@yusheng/tokens";
-import { TemplateCard } from "../components/template-card";
+const sectionStyle: CSSProperties = {
+  background: "#ffffff",
+  border: "1px solid #e5e7eb",
+  borderRadius: 16,
+  padding: "20px 22px",
+  boxShadow: "0 6px 20px rgba(15,23,42,0.04)"
+};
 
-type TabKey = "home" | "components" | "settings";
+const h2Style: CSSProperties = {
+  fontSize: 24,
+  fontWeight: 700,
+  marginBottom: 12,
+  color: "#0f172a"
+};
 
-interface SettingsState {
-  birthDate: string;
-  expectedLifespanYears: number;
-  mealsPerDay: number;
-  toneStyle: ToneStyle;
-  defaultTemplate: TemplateKey;
-}
-
-const SETTINGS_STORAGE_KEY = "yusheng_settings_v2";
-
-const DEFAULT_SETTINGS: SettingsState = {
-  birthDate: "1998-01-01",
-  expectedLifespanYears: DEFAULT_EXPECTED_LIFESPAN_YEARS,
-  mealsPerDay: DEFAULT_MEALS_PER_DAY,
-  toneStyle: "poetic",
-  defaultTemplate: "battery"
+const h3Style: CSSProperties = {
+  fontSize: 18,
+  fontWeight: 700,
+  marginTop: 14,
+  marginBottom: 8,
+  color: "#1e293b"
 };
 
 export default function Page() {
-  const [tab, setTab] = useState<TabKey>("home");
-  const [settings, setSettings] = useState<SettingsState>(DEFAULT_SETTINGS);
-  const [currentTemplate, setCurrentTemplate] = useState<TemplateKey>(DEFAULT_SETTINGS.defaultTemplate);
-  const [hydrated, setHydrated] = useState(false);
-  const activeSlideRef = useRef<HTMLDivElement>(null);
-  const pressTimer = useRef<number>();
-
-  useEffect(() => {
-    const saved = localStorage.getItem(SETTINGS_STORAGE_KEY);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved) as Partial<SettingsState>;
-        const next = {
-          ...DEFAULT_SETTINGS,
-          ...parsed
-        } as SettingsState;
-        setSettings(next);
-        setCurrentTemplate(next.defaultTemplate);
-      } catch {
-        setSettings(DEFAULT_SETTINGS);
-      }
-    }
-    setHydrated(true);
-  }, []);
-
-  useEffect(() => {
-    if (!hydrated) return;
-    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
-  }, [settings, hydrated]);
-
-  const currentIndex = useMemo(
-    () => templates.findIndex((template) => template.key === currentTemplate),
-    [currentTemplate]
-  );
-
-  const summary = useMemo(
-    () =>
-      getLifeSummary({
-        birthDate: settings.birthDate,
-        expectedLifespanYears: settings.expectedLifespanYears,
-        mealsPerDay: settings.mealsPerDay
-      }),
-    [settings.birthDate, settings.expectedLifespanYears, settings.mealsPerDay]
-  );
-
-  const textCopy = useMemo(
-    () => copyByTone(settings.toneStyle, summary.remainingPercentage, formatNumber(summary.remainingLifeDays)),
-    [settings.toneStyle, summary.remainingPercentage, summary.remainingLifeDays]
-  );
-
-  async function exportCard() {
-    if (!activeSlideRef.current) return;
-
-    const dataUrl = await toPng(activeSlideRef.current, {
-      cacheBust: true,
-      pixelRatio: 2,
-      canvasWidth: 1080,
-      canvasHeight: 1920,
-      backgroundColor: themeTokens.backgroundDark
-    });
-
-    const link = document.createElement("a");
-    link.download = `余生电量-${currentTemplate}-9x16.png`;
-    link.href = dataUrl;
-    link.click();
-  }
-
-  function onStartPress() {
-    pressTimer.current = window.setTimeout(exportCard, 450);
-  }
-
-  function onEndPress() {
-    if (pressTimer.current) clearTimeout(pressTimer.current);
-  }
-
   return (
     <main
-      className="relative mx-auto flex min-h-screen w-full max-w-[430px] flex-col overflow-hidden"
       style={{
-        background: `linear-gradient(180deg, ${themeTokens.background} 0%, ${themeTokens.backgroundDark} 100%)`,
-        color: themeTokens.textPrimary
+        minHeight: "100vh",
+        background: "linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%)",
+        color: "#111827"
       }}
     >
-      <section className="px-5 pt-8">
-        <h1 className="text-[30px] font-semibold tracking-[0.02em]">余生电量</h1>
-        <p className="mt-2 text-sm" style={{ color: themeTokens.textSecondary }}>
-          左右滑动切换模板，长按导出
-        </p>
-      </section>
+      <div className="mx-auto max-w-5xl px-6 py-10 md:py-14">
+        <header className="mb-8 rounded-2xl border border-indigo-100 bg-white/90 p-6 shadow-sm">
+          <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-indigo-600">AI Agent 学习手册</p>
+          <h1 className="mb-3 text-3xl font-extrabold leading-tight text-slate-900 md:text-4xl">
+            从入门到精通：AI Agent 如何应用搭建（含案例）
+          </h1>
+          <p className="text-base text-slate-600">
+            一页搞懂 Agent、Skill、AI 工作流的差异，并给出可落地的 30 天搭建路径。
+          </p>
+        </header>
 
-      {tab === "home" && (
-        <section className="mt-5 flex-1 px-5">
-          <div className="overflow-hidden">
-            <motion.div
-              className="flex"
-              drag="x"
-              dragConstraints={{ left: -((templates.length - 1) * 342), right: 0 }}
-              dragElastic={0.05}
-              transition={{ type: "spring", stiffness: 260, damping: 28 }}
-              onDragEnd={(_, info) => {
-                if (info.offset.x < -70) {
-                  setCurrentTemplate(templates[Math.min(currentIndex + 1, templates.length - 1)].key);
-                }
-                if (info.offset.x > 70) {
-                  setCurrentTemplate(templates[Math.max(currentIndex - 1, 0)].key);
-                }
-              }}
-              animate={{ x: -(currentIndex * 342) }}
-            >
-              {templates.map((item, idx) => {
-                const active = idx === currentIndex;
-                return (
-                  <motion.article
-                    key={item.key}
-                    className="w-[330px] shrink-0 pr-3"
-                    animate={{ opacity: active ? 1 : 0.52, scale: active ? 1 : 0.97 }}
-                    transition={{ duration: 0.25, ease: "easeOut" }}
-                  >
-                    <div
-                      ref={active ? activeSlideRef : undefined}
-                      className="aspect-[9/16] w-full rounded-[28px] border border-white/10 p-6"
-                      style={{ background: "rgba(255,255,255,0.08)" }}
-                      onTouchStart={onStartPress}
-                      onTouchEnd={onEndPress}
-                      onTouchCancel={onEndPress}
-                      onMouseDown={onStartPress}
-                      onMouseUp={onEndPress}
-                      onMouseLeave={onEndPress}
-                    >
-                      <TemplateCard
-                        template={item.key}
-                        percent={summary.remainingPercentage}
-                        remainingDays={formatNumber(summary.remainingLifeDays)}
-                        quote={textCopy[3]}
-                      />
-                    </div>
-                    <p className="mt-3 text-sm" style={{ color: themeTokens.textSecondary }}>
-                      {item.title}
-                    </p>
-                  </motion.article>
-                );
-              })}
-            </motion.div>
-          </div>
+        <div className="space-y-5 pb-10">
+          <section style={sectionStyle}>
+            <h2 style={h2Style}>一、统一认知：Agent 是什么？</h2>
+            <p>
+              <strong>AI Agent = 大模型 + 工具调用 + 记忆 + 规划 + 反馈执行闭环。</strong>
+              它不是“只能聊天的机器人”，而是“能围绕目标持续行动并交付结果”的系统。
+            </p>
+          </section>
 
-          <div className="mt-4 flex items-center justify-center gap-2">
-            {templates.map((item) => (
-              <button
-                key={item.key}
-                aria-label={`切换到${item.title}`}
-                className="h-1.5 rounded-full transition-all"
-                style={{
-                  width: item.key === currentTemplate ? 22 : 8,
-                  background: item.key === currentTemplate ? themeTokens.primary : "rgba(255,255,255,0.22)"
-                }}
-                onClick={() => setCurrentTemplate(item.key)}
-              />
-            ))}
-          </div>
+          <section style={sectionStyle}>
+            <h2 style={h2Style}>二、三大概念区别：Agent / Skill / Workflow</h2>
+            <h3 style={h3Style}>1) AI Workflow（工作流）</h3>
+            <ul className="list-disc space-y-1 pl-6">
+              <li>预先编排好固定步骤，像流程图。</li>
+              <li>优点：稳定、可控、易审计；缺点：灵活性一般。</li>
+              <li>例子：用户提问 → 检索知识库 → 模板化回复。</li>
+            </ul>
 
-          <button
-            className="mt-4 w-full rounded-2xl py-3 text-sm font-medium"
-            style={{ background: themeTokens.primary, color: themeTokens.backgroundDark }}
-            onClick={exportCard}
-          >
-            导出当前模板 PNG（9:16）
-          </button>
-        </section>
-      )}
+            <h3 style={h3Style}>2) Skill（技能）</h3>
+            <ul className="list-disc space-y-1 pl-6">
+              <li>可复用能力模块，类似插件/函数。</li>
+              <li>例子：SQL 查询、发邮件、调用 ERP、读取 PDF。</li>
+              <li>特点：单点能力强，可被多个 Agent 复用。</li>
+            </ul>
 
-      {tab === "components" && (
-        <section className="mt-6 flex-1 px-5 space-y-3">
-          {[textCopy[0], textCopy[1], `剩余餐数 ${formatNumber(summary.remainingMeals)}`].map((line) => (
-            <div key={line} className="rounded-2xl border border-white/10 p-4" style={{ background: "rgba(255,255,255,0.08)" }}>
-              {line}
-            </div>
-          ))}
-        </section>
-      )}
+            <h3 style={h3Style}>3) Agent</h3>
+            <ul className="list-disc space-y-1 pl-6">
+              <li>以目标为中心，能自主决定调用哪个 Skill、何时重试、是否改计划。</li>
+              <li>优点：灵活、适应复杂任务；代价：治理难度和成本更高。</li>
+              <li>例子：自动完成“本周运营复盘并邮件发送”。</li>
+            </ul>
+          </section>
 
-      {tab === "settings" && (
-        <section className="mt-5 flex-1 space-y-3 px-5 pb-6">
-          <Field label="出生日期">
-            <input
-              type="date"
-              value={settings.birthDate}
-              onChange={(event) => setSettings((prev) => ({ ...prev, birthDate: event.target.value }))}
-              className="w-full rounded-xl border border-white/10 bg-transparent p-3 text-sm"
-            />
-          </Field>
+          <section style={sectionStyle}>
+            <h2 style={h2Style}>三、从入门到精通：能力成长路线</h2>
 
-          <Field label="预期寿命（年）">
-            <input
-              type="number"
-              min={1}
-              max={150}
-              value={settings.expectedLifespanYears}
-              onChange={(event) =>
-                setSettings((prev) => ({
-                  ...prev,
-                  expectedLifespanYears: Math.max(1, Number(event.target.value) || DEFAULT_EXPECTED_LIFESPAN_YEARS)
-                }))
-              }
-              className="w-full rounded-xl border border-white/10 bg-transparent p-3 text-sm"
-            />
-          </Field>
+            <h3 style={h3Style}>阶段 A：入门（跑通 MVP）</h3>
+            <ul className="list-disc space-y-1 pl-6">
+              <li>掌握 Prompt 结构化写法（角色/目标/约束/输出格式）。</li>
+              <li>接入 1~3 个工具（Function Calling / API）。</li>
+              <li>接入基础记忆和简单 RAG。</li>
+            </ul>
 
-          <Field label="每日用餐次数">
-            <input
-              type="number"
-              min={1}
-              max={10}
-              value={settings.mealsPerDay}
-              onChange={(event) =>
-                setSettings((prev) => ({
-                  ...prev,
-                  mealsPerDay: Math.max(1, Number(event.target.value) || DEFAULT_MEALS_PER_DAY)
-                }))
-              }
-              className="w-full rounded-xl border border-white/10 bg-transparent p-3 text-sm"
-            />
-          </Field>
+            <h3 style={h3Style}>阶段 B：进阶（稳定上线）</h3>
+            <ul className="list-disc space-y-1 pl-6">
+              <li>加入计划器（Plan-Execute）与状态机。</li>
+              <li>建立重试、超时、错误分级、人工兜底。</li>
+              <li>指标化评估：成功率、延迟、成本、幻觉率。</li>
+            </ul>
 
-          <Field label="语气风格">
-            <select
-              value={settings.toneStyle}
-              onChange={(event) => setSettings((prev) => ({ ...prev, toneStyle: event.target.value as ToneStyle }))}
-              className="w-full rounded-xl border border-white/10 bg-transparent p-3 text-sm"
-            >
-              <option className="text-black" value="calm">平静</option>
-              <option className="text-black" value="firm">坚定</option>
-              <option className="text-black" value="poetic">诗意</option>
-            </select>
-          </Field>
+            <h3 style={h3Style}>阶段 C：精通（多 Agent 协作）</h3>
+            <ul className="list-disc space-y-1 pl-6">
+              <li>角色分工：研究员 Agent、执行 Agent、审计 Agent。</li>
+              <li>动态路由：按任务难度切模型与流程。</li>
+              <li>建立长期记忆、自动评估、A/B 与成本治理体系。</li>
+            </ul>
+          </section>
 
-          <Field label="默认模板">
-            <select
-              value={settings.defaultTemplate}
-              onChange={(event) => {
-                const value = event.target.value as TemplateKey;
-                setSettings((prev) => ({ ...prev, defaultTemplate: value }));
-                setCurrentTemplate(value);
-              }}
-              className="w-full rounded-xl border border-white/10 bg-transparent p-3 text-sm"
-            >
-              {templates.map((item) => (
-                <option key={item.key} value={item.key} className="text-black">
-                  {item.title}
-                </option>
-              ))}
-            </select>
-          </Field>
-        </section>
-      )}
+          <section style={sectionStyle}>
+            <h2 style={h2Style}>四、工程化搭建步骤（可直接执行）</h2>
+            <ol className="list-decimal space-y-2 pl-6">
+              <li>
+                <strong>选任务：</strong>先选高频、可量化、可验收的单点场景。
+              </li>
+              <li>
+                <strong>定指标：</strong>准确率、人工介入率、平均时延、单任务成本。
+              </li>
+              <li>
+                <strong>建循环：</strong>Understand → Plan → Act → Observe → Reflect → Finish。
+              </li>
+              <li>
+                <strong>做 Skill 规范：</strong>Schema 强约束、幂等、错误码、可回放日志。
+              </li>
+              <li>
+                <strong>做治理：</strong>权限最小化、注入防护、敏感操作人工确认。
+              </li>
+            </ol>
+          </section>
 
-      <nav
-        className="grid grid-cols-3 border-t border-white/10"
-        style={{ background: "rgba(10,44,33,0.92)", backdropFilter: "blur(8px)" }}
-      >
-        {[
-          { key: "home", label: "首页" },
-          { key: "components", label: "组件" },
-          { key: "settings", label: "设置" }
-        ].map((item) => (
-          <button
-            key={item.key}
-            className="py-4 text-sm"
-            style={{ color: item.key === tab ? themeTokens.primary : themeTokens.textSecondary }}
-            onClick={() => setTab(item.key as TabKey)}
-          >
-            {item.label}
-          </button>
-        ))}
-      </nav>
+          <section style={sectionStyle}>
+            <h2 style={h2Style}>五、案例：从简单到复杂</h2>
 
+            <h3 style={h3Style}>案例 1：客服问答助手（Workflow 主导）</h3>
+            <p>流程：意图识别 → 知识检索 → 模板回复 → 低置信度转人工。</p>
+
+            <h3 style={h3Style}>案例 2：运营周报 Agent（单 Agent + 多 Skill）</h3>
+            <p>自动拉指标、识别异常、生成报告、邮件发送，减少重复劳动。</p>
+
+            <h3 style={h3Style}>案例 3：招聘系统（多 Agent 协作）</h3>
+            <p>简历解析 Agent、匹配 Agent、面试题 Agent、合规审查 Agent 协同完成招聘流程。</p>
+          </section>
+
+          <section style={sectionStyle}>
+            <h2 style={h2Style}>六、30 天落地计划</h2>
+            <ul className="list-disc space-y-1 pl-6">
+              <li><strong>第 1 周：</strong>选场景 + 定 KPI（准确率/时延/人工介入率）。</li>
+              <li><strong>第 2 周：</strong>完成 MVP（1 个 Agent + 2~3 个 Skills）。</li>
+              <li><strong>第 3 周：</strong>构建测试集并优化检索、提示词、参数。</li>
+              <li><strong>第 4 周：</strong>灰度上线，增加监控告警与人工兜底。</li>
+            </ul>
+          </section>
+        </div>
+      </div>
     </main>
-  );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <label className="block space-y-1">
-      <p className="text-sm" style={{ color: themeTokens.textSecondary }}>
-        {label}
-      </p>
-      {children}
-    </label>
   );
 }
